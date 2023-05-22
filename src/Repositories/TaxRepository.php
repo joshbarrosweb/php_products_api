@@ -37,9 +37,9 @@ class TaxRepository implements TaxRepositoryInterface
         }
 
         return new Tax(
-            $taxData['id'],
+            (int)$taxData['id'],
             $taxData['name'],
-            $taxData['rate'],
+            (float)$taxData['rate'],
             $taxData['created_at']
         );
     }
@@ -53,6 +53,9 @@ class TaxRepository implements TaxRepositoryInterface
         $statement->bindValue(':rate', $tax->getRate(), \PDO::PARAM_STR);
         $statement->bindValue(':created_at', $tax->getCreatedAt(), \PDO::PARAM_STR);
         $statement->execute();
+
+        $id = $connection->lastInsertId();
+        $tax->setId((int)$id);
     }
 
     public function update(Tax $tax): void

@@ -4,12 +4,12 @@ namespace App\Models;
 
 class Tax
 {
-    private int $id;
+    private ?int $id;
     private string $name;
     private float $rate;
     private string $createdAt;
 
-    public function __construct(int $id, string $name, float $rate, string $createdAt)
+    public function __construct(?int $id = null, string $name, float $rate, string $createdAt)
     {
         $this->id = $id;
         $this->name = $name;
@@ -17,9 +17,14 @@ class Tax
         $this->createdAt = $createdAt;
     }
 
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function setId(int $id): void
+    {
+        $this->id = $id;
     }
 
     public function getName(): string

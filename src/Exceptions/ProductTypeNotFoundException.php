@@ -2,7 +2,7 @@
 
 namespace App\Exceptions;
 
-class ProductTypeNotFoundException extends Exception
+class ProductTypeNotFoundException extends \Exception
 {
     public function __construct(int $id)
     {

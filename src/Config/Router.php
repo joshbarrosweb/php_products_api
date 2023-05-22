@@ -97,12 +97,33 @@ class Router
 
     private function executeCallback($callback, Request $request): void
     {
+        // Start parameters array with the request
+        $parameters = ['request' => $request];
+
+        // Extract route parameters from $_GET
+        foreach ($_GET as $key => $value) {
+          if ($key !== 'request') {
+              // If the value is numeric, convert it to an integer
+              if (is_numeric($value)) {
+                  $parameters[$key] = (int)$value;
+              } else {
+                  // Else, split the string by '/' and take the last part
+                  $parts = explode('/', $value);
+                  $lastPart = end($parts);
+
+                  if (is_numeric($lastPart)) {
+                      $parameters[$key] = (int)$lastPart;
+                  }
+              }
+          }
+      }
+
         if (is_callable($callback)) {
-            $response = call_user_func($callback, $request);
+            $response = call_user_func_array($callback, $parameters);
         } elseif (is_array($callback) && count($callback) === 2 && is_callable([$callback[0], $callback[1]])) {
             $controller = new $callback[0]();
             $action = $callback[1];
-            $response = $controller->$action($request);
+            $response = call_user_func_array([$controller, $action], $parameters);
         }
 
         if (!$response instanceof Response) {

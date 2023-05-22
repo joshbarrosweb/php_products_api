@@ -4,6 +4,9 @@ namespace App\Services;
 
 use App\Interfaces\SaleRepositoryInterface;
 
+use App\Models\Sale;
+use App\Dtos\SaleDTO;
+
 class SaleService
 {
     private SaleRepositoryInterface $saleRepository;
@@ -26,7 +29,7 @@ class SaleService
     public function createSale(SaleDTO $saleDTO): void
     {
         $sale = new Sale(
-            $saleDTO->getId(),
+            null,
             $saleDTO->getProductId(),
             $saleDTO->getQuantity(),
             $saleDTO->getTotal(),

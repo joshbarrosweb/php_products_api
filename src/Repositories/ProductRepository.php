@@ -37,9 +37,9 @@ class ProductRepository implements ProductRepositoryInterface
         }
 
         return new Product(
-            $productData['id'],
+            (int)$productData['id'],
             $productData['name'],
-            $productData['price'],
+            (float)$productData['price'],
             $productData['quantity'],
             $productData['created_at']
         );
@@ -55,6 +55,9 @@ class ProductRepository implements ProductRepositoryInterface
         $statement->bindValue(':quantity', $product->getQuantity(), \PDO::PARAM_INT);
         $statement->bindValue(':created_at', $product->getCreatedAt(), \PDO::PARAM_STR);
         $statement->execute();
+
+        $id = $connection->lastInsertId();
+        $product->setId((int)$id);
     }
 
     public function update(Product $product): void

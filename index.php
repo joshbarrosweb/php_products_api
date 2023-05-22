@@ -1,8 +1,21 @@
 <?php
 
-require 'vendor/autoload.php';
+require_once 'vendor/autoload.php';
 
-require './src/Config/Database.php';
+require_once 'src/Config/Database.php';
+require_once 'src/Config/Router.php';
+require_once 'src/Controllers/ProductController.php';
+require_once 'src/Controllers/ProductTypeController.php';
+require_once 'src/Controllers/TaxController.php';
+require_once 'src/Controllers/SaleController.php';
+require_once 'src/Repositories/ProductRepository.php';
+require_once 'src/Repositories/ProductTypeRepository.php';
+require_once 'src/Repositories/TaxRepository.php';
+require_once 'src/Repositories/SaleRepository.php';
+require_once 'src/Services/ProductService.php';
+require_once 'src/Services/ProductTypeService.php';
+require_once 'src/Services/TaxService.php';
+require_once 'src/Services/SaleService.php';
 
 use App\Config\Database;
 use App\Repositories\ProductRepository;
@@ -42,7 +55,7 @@ $taxController = new TaxController($taxService);
 $saleController = new SaleController($saleService);
 
 // Include the routes file
-require './src/routes.php';
+require_once './src/routes.php';
 
 error_reporting(E_ALL);
-ini_set('display_errors', '1');
+ini_set('display_errors', 1);

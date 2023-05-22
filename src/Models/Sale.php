@@ -4,14 +4,14 @@ namespace App\Models;
 
 class Sale
 {
-    private int $id;
+    private ?int $id;
     private int $productId;
     private int $quantity;
     private float $total;
     private float $taxAmount;
     private string $createdAt;
 
-    public function __construct(int $id, int $productId, int $quantity, float $total, float $taxAmount, string $createdAt)
+    public function __construct(?int $id = null, int $productId, int $quantity, float $total, float $taxAmount, string $createdAt)
     {
         $this->id = $id;
         $this->productId = $productId;
@@ -21,9 +21,14 @@ class Sale
         $this->createdAt = $createdAt;
     }
 
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function setId(int $id): void
+    {
+        $this->id = $id;
     }
 
     public function getProductId(): int

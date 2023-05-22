@@ -4,6 +4,9 @@ namespace App\Services;
 
 use App\Interfaces\TaxRepositoryInterface;
 
+use App\Models\Tax;
+use App\Dtos\TaxDTO;
+
 class TaxService
 {
     private TaxRepositoryInterface $taxRepository;
@@ -26,7 +29,7 @@ class TaxService
     public function createTax(TaxDTO $taxDTO): void
     {
         $tax = new Tax(
-            $taxDTO->getId(),
+            null,
             $taxDTO->getName(),
             $taxDTO->getRate(),
             $taxDTO->getCreatedAt()

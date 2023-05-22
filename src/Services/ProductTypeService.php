@@ -4,6 +4,9 @@ namespace App\Services;
 
 use App\Interfaces\ProductTypeRepositoryInterface;
 
+use App\Models\ProductType;
+use App\DTOs\ProductTypeDTO;
+
 class ProductTypeService
 {
     private ProductTypeRepositoryInterface $productTypeRepository;
@@ -26,7 +29,7 @@ class ProductTypeService
     public function createProductType(ProductTypeDTO $productTypeDTO): void
     {
         $productType = new ProductType(
-            $productTypeDTO->getId(),
+            null,
             $productTypeDTO->getName(),
             $productTypeDTO->getCreatedAt()
         );
@@ -36,14 +39,16 @@ class ProductTypeService
 
     public function updateProductType(int $id, ProductTypeDTO $productTypeDTO): void
     {
-        $productType = new ProductType(
-            $id,
-            $productTypeDTO->getName(),
-            $productTypeDTO->getCreatedAt()
-        );
+        $existingProductType = $this->getProductTypeById($id);
 
-        $this->productTypeRepository->update($productType);
+        if ($existingProductType) {
+            $existingProductType->setName($productTypeDTO->getName());
+            $existingProductType->setCreatedAt($productTypeDTO->getCreatedAt());
+
+            $this->productTypeRepository->update($existingProductType);
+        }
     }
+
 
     public function deleteProductType(int $id): void
     {

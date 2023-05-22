@@ -4,13 +4,13 @@ namespace App\Dtos;
 
 class ProductDTO
 {
-    private int $id;
+    private ?int $id;
     private string $name;
     private float $price;
     private int $quantity;
     private string $createdAt;
 
-    public function __construct(int $id, string $name, float $price, int $quantity, string $createdAt)
+    public function __construct(?int $id = null, string $name, float $price, int $quantity, string $createdAt)
     {
         $this->id = $id;
         $this->name = $name;
@@ -19,7 +19,7 @@ class ProductDTO
         $this->createdAt = $createdAt;
     }
 
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }

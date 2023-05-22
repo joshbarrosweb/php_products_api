@@ -37,7 +37,7 @@ class ProductTypeRepository implements ProductTypeRepositoryInterface
         }
 
         return new ProductType(
-            $productTypeData['id'],
+            (int)$productTypeData['id'],
             $productTypeData['name'],
             $productTypeData['created_at']
         );
@@ -51,6 +51,9 @@ class ProductTypeRepository implements ProductTypeRepositoryInterface
         $statement->bindValue(':name', $productType->getName(), \PDO::PARAM_STR);
         $statement->bindValue(':created_at', $productType->getCreatedAt(), \PDO::PARAM_STR);
         $statement->execute();
+
+        $id = $connection->lastInsertId();
+        $productType->setId((int)$id);
     }
 
     public function update(ProductType $productType): void

@@ -37,10 +37,10 @@ class SaleRepository implements SaleRepositoryInterface
         }
 
         return new Sale(
-            $saleData['id'],
+            (int)$saleData['id'],
             $saleData['product_id'],
             $saleData['quantity'],
-            $saleData['total'],
+            (float)$saleData['total'],
             $saleData['tax_amount'],
             $saleData['created_at']
         );
@@ -57,6 +57,9 @@ class SaleRepository implements SaleRepositoryInterface
         $statement->bindValue(':tax_amount', $sale->getTaxAmount(), \PDO::PARAM_STR);
         $statement->bindValue(':created_at', $sale->getCreatedAt(), \PDO::PARAM_STR);
         $statement->execute();
+
+        $id = $connection->lastInsertId();
+        $sale->setId((int)$id);
     }
 
     public function update(Sale $sale): void

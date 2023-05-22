@@ -4,6 +4,9 @@ namespace App\Services;
 
 use App\Interfaces\ProductRepositoryInterface;
 
+use App\Models\Product;
+use App\Dtos\ProductDTO;
+
 class ProductService
 {
     private ProductRepositoryInterface $productRepository;
@@ -26,7 +29,7 @@ class ProductService
     public function createProduct(ProductDTO $productDTO): void
     {
         $product = new Product(
-            $productDTO->getId(),
+            null,
             $productDTO->getName(),
             $productDTO->getPrice(),
             $productDTO->getQuantity(),
@@ -35,6 +38,7 @@ class ProductService
 
         $this->productRepository->create($product);
     }
+
 
     public function updateProduct(int $id, ProductDTO $productDTO): void
     {

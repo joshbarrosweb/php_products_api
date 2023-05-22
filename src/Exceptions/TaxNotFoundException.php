@@ -2,7 +2,7 @@
 
 namespace App\Exceptions;
 
-class TaxNotFoundException extends Exception
+class TaxNotFoundException extends \Exception
 {
     public function __construct(int $id)
     {

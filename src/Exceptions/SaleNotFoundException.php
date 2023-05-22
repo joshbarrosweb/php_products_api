@@ -2,7 +2,7 @@
 
 namespace App\Exceptions;
 
-class SaleNotFoundException extends Exception
+class SaleNotFoundException extends \Exception
 {
     public function __construct(int $id)
     {
