@@ -102,21 +102,19 @@ class Router
 
         // Extract route parameters from $_GET
         foreach ($_GET as $key => $value) {
-          if ($key !== 'request') {
-              // If the value is numeric, convert it to an integer
-              if (is_numeric($value)) {
-                  $parameters[$key] = (int)$value;
-              } else {
-                  // Else, split the string by '/' and take the last part
-                  $parts = explode('/', $value);
-                  $lastPart = end($parts);
+            if ($key !== 'request') {
+                if (is_numeric($value)) {
+                    $parameters[$key] = (int)$value;
+                } else {
+                    $parts = explode('/', $value);
+                    $lastPart = end($parts);
 
-                  if (is_numeric($lastPart)) {
-                      $parameters[$key] = (int)$lastPart;
-                  }
-              }
-          }
-      }
+                    if (is_numeric($lastPart)) {
+                        $parameters[$key] = (int)$lastPart;
+                    }
+                }
+            }
+        }
 
         if (is_callable($callback)) {
             $response = call_user_func_array($callback, $parameters);
@@ -131,6 +129,12 @@ class Router
         }
 
         $response->headers->set('Content-Type', 'application/json');
+
+        // Set the CORS headers
+        $response->headers->set('Access-Control-Allow-Origin', '*');
+        $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
+        $response->headers->set('Access-Control-Allow-Headers', 'Origin, Content-Type, X-Auth-Token');
+
         $response->send();
     }
 }
