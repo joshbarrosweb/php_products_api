@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-class Sale
+class Sale implements \JsonSerializable
 {
     private ?int $id;
     private int $productId;
@@ -79,5 +79,18 @@ class Sale
     public function setCreatedAt(string $createdAt): void
     {
         $this->createdAt = $createdAt;
+    }
+
+    public function jsonSerialize()
+    {
+        return
+        [
+            'id' => $this->getId(),
+            'product_id' => $this->getProductId(),
+            'quantity' => $this->getQuantity(),
+            'total' => $this->getTotal(),
+            'tax_amount' => $this->getTaxAmount(),
+            'created_at' => $this->getCreatedAt()
+        ];
     }
 }

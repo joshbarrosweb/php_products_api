@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-class Tax
+class Tax implements \JsonSerializable
 {
     private ?int $id;
     private string $name;
@@ -55,5 +55,16 @@ class Tax
     public function setCreatedAt(string $createdAt): void
     {
         $this->createdAt = $createdAt;
+    }
+
+    public function jsonSerialize()
+    {
+        return
+        [
+            'id' => $this->getId(),
+            'name' => $this->getName(),
+            'rate' => $this->getRate(),
+            'created_at' => $this->getCreatedAt()
+        ];
     }
 }
