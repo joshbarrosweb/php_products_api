@@ -9,70 +9,30 @@ To run the project, make sure you have Docker installed. Then, execute the follo
 
 After that, you can access the application by visiting `http://localhost:8080/test` in your web browser. If the app is running properly, you will see the message "Hey, I'm alive!!!".
 
-## Folder Structure
+## Files
+Here is a brief overview of the role of each file in this project:
 
-The project follows the following folder structure:
+composer.json and composer.lock: These files contain the project's PHP dependencies.
+docker-compose.yml and Dockerfile: These files define the Docker configuration for running the project.
+index.php: This is the entry point of the application, responsible for processing incoming requests.
+init.sql: This file contains the SQL commands to create the necessary database structure.
+README.md: This file, containing documentation about the project, including how to get started and the provided routes.
+src
+This directory contains the source code for the project.
 
-├── composer.json
-├── composer.lock
-├── docker-compose.yml
-├── Dockerfile
-├── index.php
-├── init.sql
-├── src
-│ ├── Config
-│ │ ├── Database.php
-│ │ └── Router.php
-│ ├── Controllers
-│ │ ├── ProductController.php
-│ │ ├── ProductTypeController.php
-│ │ ├── SaleController.php
-│ │ └── TaxController.php
-│ ├── Dtos
-│ │ ├── ProductDTO.php
-│ │ ├── ProductTypeDTO.php
-│ │ ├── SaleDTO.php
-│ │ └── TaxDTO.php
-│ ├── Exceptions
-│ │ ├── ProductNotFoundException.php
-│ │ ├── ProductTypeNotFoundException.php
-│ │ ├── SaleNotFoundException.php
-│ │ └── TaxNotFoundException.php
-│ ├── Interfaces
-│ │ ├── ProductRepositoryInterface.php
-│ │ ├── ProductTypeRepositoryInterface.php
-│ │ ├── SaleRepositoryInterface.php
-│ │ └── TaxRepositoryInterface.php
-│ ├── Models
-│ │ ├── Product.php
-│ │ ├── ProductType.php
-│ │ ├── Sale.php
-│ │ └── Tax.php
-│ ├── Repositories
-│ │ ├── ProductRepository.php
-│ │ ├── ProductTypeRepository.php
-│ │ ├── SaleRepository.php
-│ │ └── TaxRepository.php
-│ ├── routes.php
-│ ├── Services
-│ │ ├── ProductService.php
-│ │ ├── ProductTypeService.php
-│ │ ├── SaleService.php
-│ │ └── TaxService.php
-│ ├── Tests
-│ │ └── unit
-│ │ └── controllers
-│ │ ├── ProductControllerTest.php
-│ │ ├── ProductTypeControllerTest.php
-│ │ ├── SaleControllerTest.php
-│ │ └── TaxControllerTest.php
-│ └── Validators
-│ ├── ProductTypeValidator.php
-│ ├── ProductValidator.php
-│ ├── SaleValidator.php
-│ └── TaxValidator.php
-└── README.md
-
+Config: Contains configuration files:
+Database.php: Defines the database connection settings.
+Router.php: Defines the routes of the application.
+Controllers: Contains the application's controllers, responsible for handling incoming requests and returning responses.
+Dtos: Contains the Data Transfer Objects (DTOs), which define how data will be sent and received.
+Exceptions: Contains custom exceptions that may be thrown in the application.
+Interfaces: Contains the interfaces that the repository classes must implement.
+Models: Contains the application's models, representing the data in the database.
+Repositories: Contains the repository classes, responsible for handling the logic for database access.
+routes.php: Defines the application's routes.
+Services: Contains service classes, which encapsulate business logic.
+Tests: Contains the application's tests.
+Validators: Contains the classes that handle validation of data.
 
 ## Routes
 
