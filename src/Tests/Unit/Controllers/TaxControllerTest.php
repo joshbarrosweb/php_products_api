@@ -1,162 +1,164 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
+namespace App\Tests\Controllers;
+
 use App\Controllers\TaxController;
 use App\Services\TaxService;
-use App\DTO\TaxDTO;
+use App\Dtos\TaxDTO;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use PHPUnit\Framework\TestCase;
 
 class TaxControllerTest extends TestCase
 {
-    private TaxController $taxController;
-    private TaxService $taxService;
+    private $taxService;
+    private $taxController;
 
     protected function setUp(): void
     {
-        // Create a mock instance of the TaxService
         $this->taxService = $this->createMock(TaxService::class);
-
-        // Create an instance of the TaxController with the mock service
         $this->taxController = new TaxController($this->taxService);
     }
 
     public function testIndex(): void
     {
-        // Define a sample list of taxes
-        $taxes = [
-            ['id' => 1, 'name' => 'Tax 1', 'rate' => 0.1],
-            ['id' => 2, 'name' => 'Tax 2', 'rate' => 0.2],
+        // Arrange
+        $taxesData = [
+            new TaxDTO(1, 'VAT', 20.0, '2023-05-21 00:00:00'),
+            new TaxDTO(2, 'GST', 18.0, '2023-05-21 00:00:00'),
         ];
 
-        // Set up the mock service to return the sample taxes
-        $this->taxService->expects($this->once())
+        $this->taxService
+            ->expects($this->once())
             ->method('getAllTaxes')
-            ->willReturn($taxes);
+            ->willReturn($taxesData);
 
-        // Create a mock Request object
-        $request = Request::create('/taxes', 'GET');
+        // Act
+        $response = $this->taxController->index(new Request());
 
-        // Call the index method of the controller
-        $response = $this->taxController->index($request);
-
-        // Assert that the response is a JsonResponse
-        $this->assertInstanceOf(JsonResponse::class, $response);
-
-        // Assert that the response contains the expected taxes
-        $responseData = json_decode($response->getContent(), true);
-        $this->assertEquals($taxes, $responseData);
+        // Assert
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals($taxesData, $response->getData());
     }
 
     public function testShow(): void
     {
-        // Define a sample tax
-        $tax = ['id' => 1, 'name' => 'Tax 1', 'rate' => 0.1];
+        // Arrange
+        $taxData = new TaxDTO(1, 'VAT', 20.0, '2023-05-21 00:00:00');
 
-        // Set up the mock service to return the sample tax
-        $this->taxService->expects($this->once())
+        $this->taxService
+            ->expects($this->once())
             ->method('getTaxById')
-            ->with(1)
-            ->willReturn($tax);
+            ->willReturn($taxData);
 
-        // Create a mock Request object
-        $request = Request::create('/taxes/1', 'GET');
+        // Act
+        $response = $this->taxController->show(new Request(), 1);
 
-        // Call the show method of the controller
-        $response = $this->taxController->show($request, 1);
+        // Assert
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals($taxData, $response->getData());
+    }
 
-        // Assert that the response is a JsonResponse
-        $this->assertInstanceOf(JsonResponse::class, $response);
+    public function testShowNotFound(): void
+    {
+        // Arrange
+        $this->taxService
+            ->expects($this->once())
+            ->method('getTaxById')
+            ->willReturn(null);
 
-        // Assert that the response contains the expected tax
-        $responseData = json_decode($response->getContent(), true);
-        $this->assertEquals($tax, $responseData);
+        // Act
+        $response = $this->taxController->show(new Request(), 1);
+
+        // Assert
+        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(['error' => 'Tax not found', 'message' => 'Tax with id 1 not found'], $response->getData());
     }
 
     public function testCreate(): void
     {
-        // Define the input data for creating a tax
-        $requestData = [
-            'name' => 'Tax 1',
-            'rate' => 0.1,
+        // Arrange
+        $taxData = [
+            'name' => 'VAT',
+            'rate' => 20.0
         ];
 
-        // Set up the mock service to create the tax
-        $this->taxService->expects($this->once())
-            ->method('createTax')
-            ->with($this->isInstanceOf(TaxDTO::class));
+        $request = new Request([], [], [], [], [], [], json_encode($taxData));
 
-        // Create a mock Request object with the input data
-        $request = Request::create('/taxes', 'POST', [], [], [], [], json_encode($requestData));
+        $this->taxService
+            ->expects($this->once())
+            ->method('createTax');
 
-        // Call the create method of the controller
+        // Act
         $response = $this->taxController->create($request);
 
-        // Assert that the response is a JsonResponse
-        $this->assertInstanceOf(JsonResponse::class, $response);
-
-        // Assert the response status code
-        $this->assertEquals(JsonResponse::HTTP_CREATED, $response->getStatusCode());
-
-        // Assert the response message
-        $responseData = json_decode($response->getContent(), true);
-        $this->assertEquals('Tax created successfully', $responseData['message']);
+        // Assert
+        $this->assertEquals(201, $response->getStatusCode());
+        $this->assertEquals(['message' => 'Tax created successfully'], $response->getData());
     }
 
     public function testUpdate(): void
     {
-        // Define the input data for updating a tax
-        $requestData = [
-            'name' => 'Updated Tax',
-            'rate' => 0.2,
+        // Arrange
+        $taxData = [
+            'name' => 'VAT',
+            'rate' => 22.0
         ];
 
-        // Set up the mock service to update the tax
-        $this->taxService->expects($this->once())
-            ->method('updateTax')
-            ->with(
-                $this->equalTo(1),
-                $this->isInstanceOf(TaxDTO::class)
-            );
+        $tax = new TaxDTO(
+            1,
+            $taxData['name'],
+            $taxData['rate'],
+            '2023-05-21 00:00:00'
+        );
 
-        // Create a mock Request object with the input data
-        $request = Request::create('/taxes/1', 'PUT', [], [], [], [], json_encode($requestData));
+        $request = new Request([], [], [], [], [], [], json_encode($taxData));
 
-        // Call the update method of the controller
+        $this->taxService
+            ->expects($this->once())
+            ->method('getTaxById')
+            ->willReturn($tax);
+
+        $this->taxService
+            ->expects($this->once())
+            ->method('updateTax');
+
+        // Act
         $response = $this->taxController->update($request, 1);
 
-        // Assert that the response is a JsonResponse
-        $this->assertInstanceOf(JsonResponse::class, $response);
-
-        // Assert the response status code
-        $this->assertEquals(JsonResponse::HTTP_OK, $response->getStatusCode());
-
-        // Assert the response message
-        $responseData = json_decode($response->getContent(), true);
-        $this->assertEquals('Tax updated successfully', $responseData['message']);
+        // Assert
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals(['message' => 'Tax updated successfully'], $response->getData());
     }
 
     public function testDelete(): void
     {
-        // Set up the mock service to delete the tax
-        $this->taxService->expects($this->once())
-            ->method('deleteTax')
-            ->with(1);
+        // Arrange
+        $taxData = [
+            'name' => 'VAT',
+            'rate' => 20.0
+        ];
 
-        // Create a mock Request object
-        $request = Request::create('/taxes/1', 'DELETE');
+        $tax = new TaxDTO(
+            1,
+            $taxData['name'],
+            $taxData['rate'],
+            '2023-05-21 00:00:00'
+        );
 
-        // Call the delete method of the controller
-        $response = $this->taxController->delete($request, 1);
+        $this->taxService
+            ->expects($this->once())
+            ->method('getTaxById')
+            ->willReturn($tax);
 
-        // Assert that the response is a JsonResponse
-        $this->assertInstanceOf(JsonResponse::class, $response);
+        $this->taxService
+            ->expects($this->once())
+            ->method('deleteTax');
 
-        // Assert the response status code
-        $this->assertEquals(JsonResponse::HTTP_OK, $response->getStatusCode());
+        // Act
+        $response = $this->taxController->delete(new Request(), 1);
 
-        // Assert the response message
-        $responseData = json_decode($response->getContent(), true);
-        $this->assertEquals('Tax deleted successfully', $responseData['message']);
+        // Assert
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals(['message' => 'Tax deleted successfully'], $response->getData());
     }
 }

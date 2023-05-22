@@ -1,166 +1,175 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
+namespace App\Tests\Controllers;
+
 use App\Controllers\SaleController;
 use App\Services\SaleService;
-use App\DTO\SaleDTO;
+use App\Dtos\SaleDTO;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use PHPUnit\Framework\TestCase;
 
 class SaleControllerTest extends TestCase
 {
-    private SaleController $saleController;
-    private SaleService $saleService;
+    private $saleService;
+    private $saleController;
 
     protected function setUp(): void
     {
-        // Create a mock instance of the SaleService
         $this->saleService = $this->createMock(SaleService::class);
-
-        // Create an instance of the SaleController with the mock service
         $this->saleController = new SaleController($this->saleService);
     }
 
     public function testIndex(): void
     {
-        // Define a sample list of sales
-        $sales = [
-            ['id' => 1, 'product_id' => 1, 'quantity' => 2, 'total' => 20.0, 'tax_amount' => 2.0],
-            ['id' => 2, 'product_id' => 2, 'quantity' => 3, 'total' => 30.0, 'tax_amount' => 3.0],
+        // Arrange
+        $salesData = [
+            new SaleDTO(1, 1, 1, 100.0, 10.0, '2023-05-21 00:00:00'),
+            new SaleDTO(2, 2, 2, 200.0, 20.0, '2023-05-21 00:00:00'),
         ];
 
-        // Set up the mock service to return the sample sales
-        $this->saleService->expects($this->once())
+        $this->saleService
+            ->expects($this->once())
             ->method('getAllSales')
-            ->willReturn($sales);
+            ->willReturn($salesData);
 
-        // Create a mock Request object
-        $request = Request::create('/sales', 'GET');
+        // Act
+        $response = $this->saleController->index(new Request());
 
-        // Call the index method of the controller
-        $response = $this->saleController->index($request);
-
-        // Assert that the response is a JsonResponse
-        $this->assertInstanceOf(JsonResponse::class, $response);
-
-        // Assert that the response contains the expected sales
-        $responseData = json_decode($response->getContent(), true);
-        $this->assertEquals($sales, $responseData);
+        // Assert
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals($salesData, $response->getData());
     }
 
     public function testShow(): void
     {
-        // Define a sample sale
-        $sale = ['id' => 1, 'product_id' => 1, 'quantity' => 2, 'total' => 20.0, 'tax_amount' => 2.0];
+        // Arrange
+        $saleData = new SaleDTO(1, 1, 1, 100.0, 10.0, '2023-05-21 00:00:00');
 
-        // Set up the mock service to return the sample sale
-        $this->saleService->expects($this->once())
+        $this->saleService
+            ->expects($this->once())
             ->method('getSaleById')
-            ->with(1)
-            ->willReturn($sale);
+            ->willReturn($saleData);
 
-        // Create a mock Request object
-        $request = Request::create('/sales/1', 'GET');
+        // Act
+        $response = $this->saleController->show(new Request(), 1);
 
-        // Call the show method of the controller
-        $response = $this->saleController->show($request, 1);
+        // Assert
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals($saleData, $response->getData());
+    }
 
-        // Assert that the response is a JsonResponse
-        $this->assertInstanceOf(JsonResponse::class, $response);
+    public function testShowNotFound(): void
+    {
+        // Arrange
+        $this->saleService
+            ->expects($this->once())
+            ->method('getSaleById')
+            ->willReturn(null);
 
-        // Assert that the response contains the expected sale
-        $responseData = json_decode($response->getContent(), true);
-        $this->assertEquals($sale, $responseData);
+        // Act
+        $response = $this->saleController->show(new Request(), 1);
+
+        // Assert
+        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(['error' => 'Sale not found', 'message' => 'Sale with id 1 not found'], $response->getData());
     }
 
     public function testCreate(): void
     {
-        // Define the input data for creating a sale
-        $requestData = [
+        // Arrange
+        $saleData = [
             'product_id' => 1,
-            'quantity' => 2,
-            'total' => 20.0,
-            'tax_amount' => 2.0,
+            'quantity' => 1,
+            'total' => 100.0,
+            'tax_amount' => 10.0
         ];
 
-        // Set up the mock service to create the sale
-        $this->saleService->expects($this->once())
-            ->method('createSale')
-            ->with($this->isInstanceOf(SaleDTO::class));
+        $request = new Request([], [], [], [], [], [], json_encode($saleData));
 
-        // Create a mock Request object with the input data
-        $request = Request::create('/sales', 'POST', [], [], [], [], json_encode($requestData));
+        $this->saleService
+            ->expects($this->once())
+            ->method('createSale');
 
-        // Call the create method of the controller
+        // Act
         $response = $this->saleController->create($request);
 
-        // Assert that the response is a JsonResponse
-        $this->assertInstanceOf(JsonResponse::class, $response);
-
-        // Assert the response status code
-        $this->assertEquals(JsonResponse::HTTP_CREATED, $response->getStatusCode());
-
-        // Assert the response message
-        $responseData = json_decode($response->getContent(), true);
-        $this->assertEquals('Sale created successfully', $responseData['message']);
+        // Assert
+        $this->assertEquals(201, $response->getStatusCode());
+        $this->assertEquals(['message' => 'Sale created successfully'], $response->getData());
     }
 
     public function testUpdate(): void
     {
-        // Define the input data for updating a sale
-        $requestData = [
+        // Arrange
+        $saleData = [
             'product_id' => 1,
-            'quantity' => 3,
-            'total' => 30.0,
-            'tax_amount' => 3.0,
+            'quantity' => 2,
+            'total' => 200.0,
+            'tax_amount' => 20.0
         ];
 
-        // Set up the mock service to update the sale
-        $this->saleService->expects($this->once())
-            ->method('updateSale')
-            ->with(
-                $this->equalTo(1),
-                $this->isInstanceOf(SaleDTO::class)
-            );
+        $sale = new SaleDTO(
+            1,
+            $saleData['product_id'],
+            $saleData['quantity'],
+            $saleData['total'],
+            $saleData['tax_amount'],
+            '2023-05-21 00:00:00'
+        );
 
-        // Create a mock Request object with the input data
-        $request = Request::create('/sales/1', 'PUT', [], [], [], [], json_encode($requestData));
+        $request = new Request([], [], [], [], [], [], json_encode($saleData));
 
-        // Call the update method of the controller
+        $this->saleService
+            ->expects($this->once())
+            ->method('getSaleById')
+            ->willReturn($sale);
+
+        $this->saleService
+            ->expects($this->once())
+            ->method('updateSale');
+
+        // Act
         $response = $this->saleController->update($request, 1);
 
-        // Assert that the response is a JsonResponse
-        $this->assertInstanceOf(JsonResponse::class, $response);
-
-        // Assert the response status code
-        $this->assertEquals(JsonResponse::HTTP_OK, $response->getStatusCode());
-
-        // Assert the response message
-        $responseData = json_decode($response->getContent(), true);
-        $this->assertEquals('Sale updated successfully', $responseData['message']);
+        // Assert
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals(['message' => 'Sale updated successfully'], $response->getData());
     }
 
     public function testDelete(): void
     {
-        // Set up the mock service to delete the sale
-        $this->saleService->expects($this->once())
-            ->method('deleteSale')
-            ->with(1);
+        // Arrange
+        $saleData = [
+            'product_id' => 1,
+            'quantity' => 1,
+            'total' => 100.0,
+            'tax_amount' => 10.0
+        ];
 
-        // Create a mock Request object
-        $request = Request::create('/sales/1', 'DELETE');
+        $sale = new SaleDTO(
+            1,
+            $saleData['product_id'],
+            $saleData['quantity'],
+            $saleData['total'],
+            $saleData['tax_amount'],
+            '2023-05-21 00:00:00'
+        );
 
-        // Call the delete method of the controller
-        $response = $this->saleController->delete($request, 1);
+        $this->saleService
+            ->expects($this->once())
+            ->method('getSaleById')
+            ->willReturn($sale);
 
-        // Assert that the response is a JsonResponse
-        $this->assertInstanceOf(JsonResponse::class, $response);
+        $this->saleService
+            ->expects($this->once())
+            ->method('deleteSale');
 
-        // Assert the response status code
-        $this->assertEquals(JsonResponse::HTTP_OK, $response->getStatusCode());
+        // Act
+        $response = $this->saleController->delete(new Request(), 1);
 
-        // Assert the response message
-        $responseData = json_decode($response->getContent(), true);
-        $this->assertEquals('Sale deleted successfully', $responseData['message']);
+        // Assert
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals(['message' => 'Sale deleted successfully'], $response->getData());
     }
+
 }

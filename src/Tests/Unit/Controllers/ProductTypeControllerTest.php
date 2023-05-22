@@ -1,160 +1,161 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
+namespace App\Tests\Controllers;
+
 use App\Controllers\ProductTypeController;
 use App\Services\ProductTypeService;
-use App\DTO\ProductTypeDTO;
+use App\Dtos\ProductTypeDTO;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use PHPUnit\Framework\TestCase;
 
 class ProductTypeControllerTest extends TestCase
 {
-    private ProductTypeController $productTypeController;
-    private ProductTypeService $productTypeService;
+    private $productTypeService;
+    private $productTypeController;
 
     protected function setUp(): void
     {
-        // Create a mock instance of the ProductTypeService
         $this->productTypeService = $this->createMock(ProductTypeService::class);
-
-        // Create an instance of the ProductTypeController with the mock service
         $this->productTypeController = new ProductTypeController($this->productTypeService);
     }
 
     public function testIndex(): void
     {
-        // Define a sample list of product types
-        $productTypes = [
-            ['id' => 1, 'name' => 'Type 1'],
-            ['id' => 2, 'name' => 'Type 2'],
+        // Arrange
+        $productTypesData = [
+            new ProductTypeDTO(1, 'Product Type 1', '2023-05-21 00:00:00'),
+            new ProductTypeDTO(2, 'Product Type 2', '2023-05-21 00:00:00'),
         ];
 
-        // Set up the mock service to return the sample product types
-        $this->productTypeService->expects($this->once())
+        $this->productTypeService
+            ->expects($this->once())
             ->method('getAllProductTypes')
-            ->willReturn($productTypes);
+            ->willReturn($productTypesData);
 
-        // Create a mock Request object
-        $request = Request::create('/product-types', 'GET');
+        // Act
+        $response = $this->productTypeController->index(new Request());
 
-        // Call the index method of the controller
-        $response = $this->productTypeController->index($request);
-
-        // Assert that the response is a JsonResponse
-        $this->assertInstanceOf(JsonResponse::class, $response);
-
-        // Assert that the response contains the expected product types
-        $responseData = json_decode($response->getContent(), true);
-        $this->assertEquals($productTypes, $responseData);
+        // Assert
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals($productTypesData, $response->getData());
     }
 
     public function testShow(): void
     {
-        // Define a sample product type
-        $productType = ['id' => 1, 'name' => 'Type 1'];
+        // Arrange
+        $productTypeData = new ProductTypeDTO(1, 'Product Type 1', '2023-05-21 00:00:00');
 
-        // Set up the mock service to return the sample product type
-        $this->productTypeService->expects($this->once())
+        $this->productTypeService
+            ->expects($this->once())
             ->method('getProductTypeById')
-            ->with(1)
-            ->willReturn($productType);
+            ->willReturn($productTypeData);
 
-        // Create a mock Request object
-        $request = Request::create('/product-types/1', 'GET');
+        // Act
+        $response = $this->productTypeController->show(new Request(), 1);
 
-        // Call the show method of the controller
-        $response = $this->productTypeController->show($request, 1);
-
-        // Assert that the response is a JsonResponse
-        $this->assertInstanceOf(JsonResponse::class, $response);
-
-        // Assert that the response contains the expected product type
-        $responseData = json_decode($response->getContent(), true);
-        $this->assertEquals($productType, $responseData);
+        // Assert
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals($productTypeData, $response->getData());
     }
+
+    public function testShowNotFound(): void
+    {
+        // Arrange
+        $this->productTypeService
+            ->expects($this->once())
+            ->method('getProductTypeById')
+            ->willReturn(null);
+
+        // Act
+        $response = $this->productTypeController->show(new Request(), 1);
+
+        // Assert
+        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(['error' => 'Product type not found', 'message' => 'Product Type with id 1 not found'], $response->getData());
+    }
+
 
     public function testCreate(): void
     {
-        // Define the input data for creating a product type
-        $requestData = [
-            'name' => 'Type 1',
+        // Arrange
+        $productTypeData = [
+            'name' => 'Test product type'
         ];
 
-        // Set up the mock service to create the product type
-        $this->productTypeService->expects($this->once())
-            ->method('createProductType')
-            ->with($this->isInstanceOf(ProductTypeDTO::class));
+        $request = new Request([], [], [], [], [], [], json_encode($productTypeData));
 
-        // Create a mock Request object with the input data
-        $request = Request::create('/product-types', 'POST', [], [], [], [], json_encode($requestData));
+        $this->productTypeService
+            ->expects($this->once())
+            ->method('createProductType');
 
-        // Call the create method of the controller
+        // Act
         $response = $this->productTypeController->create($request);
 
-        // Assert that the response is a JsonResponse
-        $this->assertInstanceOf(JsonResponse::class, $response);
-
-        // Assert the response status code
-        $this->assertEquals(JsonResponse::HTTP_CREATED, $response->getStatusCode());
-
-        // Assert the response message
-        $responseData = json_decode($response->getContent(), true);
-        $this->assertEquals('Product type created successfully', $responseData['message']);
+        // Assert
+        $this->assertEquals(201, $response->getStatusCode());
+        $this->assertEquals(['message' => 'Product type created successfully'], $response->getData());
     }
 
     public function testUpdate(): void
     {
-        // Define the input data for updating a product type
-        $requestData = [
-            'name' => 'Updated Type',
+        // Arrange
+        $productTypeData = [
+            'name' => 'Updated product type',
         ];
 
-        // Set up the mock service to update the product type
-        $this->productTypeService->expects($this->once())
-            ->method('updateProductType')
-            ->with(
-                $this->equalTo(1),
-                $this->isInstanceOf(ProductTypeDTO::class)
-            );
+        $productType = new ProductTypeDTO(
+            1,
+            $productTypeData['name'],
+            '2023-05-21 00:00:00'
+        );
 
-        // Create a mock Request object with the input data
-        $request = Request::create('/product-types/1', 'PUT', [], [], [], [], json_encode($requestData));
+        $request = new Request([], [], [], [], [], [], json_encode($productTypeData));
 
-        // Call the update method of the controller
+        $this->productTypeService
+            ->expects($this->once())
+            ->method('getProductTypeById')
+            ->willReturn($productType);
+
+        $this->productTypeService
+            ->expects($this->once())
+            ->method('updateProductType');
+
+        // Act
         $response = $this->productTypeController->update($request, 1);
 
-        // Assert that the response is a JsonResponse
-        $this->assertInstanceOf(JsonResponse::class, $response);
-
-        // Assert the response status code
-        $this->assertEquals(JsonResponse::HTTP_OK, $response->getStatusCode());
-
-        // Assert the response message
-        $responseData = json_decode($response->getContent(), true);
-        $this->assertEquals('Product type updated successfully', $responseData['message']);
+        // Assert
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals(['message' => 'Product type updated successfully'], $response->getData());
     }
 
     public function testDelete(): void
     {
-        // Set up the mock service to delete the product type
-        $this->productTypeService->expects($this->once())
-            ->method('deleteProductType')
-            ->with(1);
+        // Arrange
+        $productTypeData = [
+            'name' => 'Product type to delete',
+        ];
 
-        // Create a mock Request object
-        $request = Request::create('/product-types/1', 'DELETE');
+        $productType = new ProductTypeDTO(
+            1,
+            $productTypeData['name'],
+            '2023-05-21 00:00:00'
+        );
 
-        // Call the delete method of the controller
-        $response = $this->productTypeController->delete($request, 1);
+        $this->productTypeService
+            ->expects($this->once())
+            ->method('getProductTypeById')
+            ->willReturn($productType);
 
-        // Assert that the response is a JsonResponse
-        $this->assertInstanceOf(JsonResponse::class, $response);
+        $this->productTypeService
+            ->expects($this->once())
+            ->method('deleteProductType');
 
-        // Assert the response status code
-        $this->assertEquals(JsonResponse::HTTP_OK, $response->getStatusCode());
+        // Act
+        $response = $this->productTypeController->delete(new Request(), 1);
 
-        // Assert the response message
-        $responseData = json_decode($response->getContent(), true);
-        $this->assertEquals('Product type deleted successfully', $responseData['message']);
+        // Assert
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals(['message' => 'Product type deleted successfully'], $response->getData());
     }
+
 }
