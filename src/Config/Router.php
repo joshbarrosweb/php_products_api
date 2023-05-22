@@ -43,6 +43,12 @@ class Router
         $requestMethod = $_SERVER['REQUEST_METHOD'];
         $requestPath = $_SERVER['REQUEST_URI'];
 
+        if ($requestMethod === 'OPTIONS') {
+            // Handle OPTIONS request
+            $this->sendOptionsResponse();
+            return;
+        }
+
         $matchedRoute = null;
 
         foreach ($this->routes as $route) {
@@ -104,13 +110,13 @@ class Router
         foreach ($_GET as $key => $value) {
             if ($key !== 'request') {
                 if (is_numeric($value)) {
-                    $parameters[$key] = (int)$value;
+                    $parameters[$key] = (int) $value;
                 } else {
                     $parts = explode('/', $value);
                     $lastPart = end($parts);
 
                     if (is_numeric($lastPart)) {
-                        $parameters[$key] = (int)$lastPart;
+                        $parameters[$key] = (int) $lastPart;
                     }
                 }
             }
@@ -132,9 +138,18 @@ class Router
 
         // Set the CORS headers
         $response->headers->set('Access-Control-Allow-Origin', '*');
-        $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
+        $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE');
         $response->headers->set('Access-Control-Allow-Headers', 'Origin, Content-Type, X-Auth-Token');
 
+        $response->send();
+    }
+
+    private function sendOptionsResponse(): void
+    {
+        $response = new Response();
+        $response->headers->set('Access-Control-Allow-Origin', '*');
+        $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE');
+        $response->headers->set('Access-Control-Allow-Headers', 'Origin, Content-Type, X-Auth-Token');
         $response->send();
     }
 }
